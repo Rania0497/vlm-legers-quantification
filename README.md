@@ -19,7 +19,7 @@ vlm-legers-quantification/
 |-- .venv/                  
 
 
-# ETAPE 1
+# ETAPE 1 : git, environnement et données
 1. Sur github.com
 Clique sur “New repository”.
 Nom : vlm-legers-quantification (ca sera le nom du dossier).
@@ -82,9 +82,30 @@ Lancer et vérifier
 La fiche des données est la carte d’identité de ton jeu d’images : d’où il vient, ce qu’il contient, ce qu’on a le droit d’en faire et ses limites. Le guide l’exige dans data/, et le prof peut te poser des questions dessus.
     notepad data\README.md
 
-7. Enregistrer et envoyer cette etape a github
+7. Github
     git add README.md data/download_flickr8k.py data/flickr8k_subset_ids.csv
-    git commit -m "Ajoute le script de telechargement Flickr8k et la liste des 500 images"
+    git commit -m "Etape1"
     git push
     git status
+
+# Étape 2 : choisir les 2 VLMs
+Pour comparer proprement, il faut deux modèles de vision-langage (VLM) différents mais comparables. On les choisit selon 3 critères : ils tiennent dans 12 Go, ils sont ouverts, et ils sont compatibles avec la quantification via transformers.
+SmolVLM2-2.2B-Instruct : un modèle léger développé par Hugging Face, distribué sous licence Apache 2.0.
+Qwen2.5-VL-3B-Instruct : un modèle développé par Alibaba, appartenant à la famille Qwen.
+Ce choix permet de comparer deux familles de modèles différentes, avec des tailles relativement proches, afin d'étudier l'effet de la quantification sur leur consommation mémoire et leurs performances.
+1. Un script qui interroge le Hub sans rien télécharger (src/check_models.py)
+2. Un fichier de config (configs/models.yaml)
+3. Lancer
+    pip install huggingface_hub
+    python src/check_models.py
+4. Github
+git add src/check_models.py configs/models.yaml README.md
+git status
+git commit -m "Etape 2 : choix des 2 VLMs (SmolVLM2-2.2B et Qwen2.5-VL-3B) et script de verification"
+git push
+git status
+
+
+
+
 
