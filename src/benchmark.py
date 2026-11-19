@@ -1,6 +1,7 @@
 """Lance les 6 configurations (2 modèles x 3 précisions) sur les mêmes images."""
 import argparse
 import csv
+import json  # AJOUTÉ : pour sauvegarder les mesures de chaque configuration
 import statistics
 import time
 from pathlib import Path
@@ -66,35 +67,42 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--images-dir", required=True)
     p.add_argument("--n", type=int, default=3)
-    p.add_argument("--out", default="results")
+    # MODIFIÉ : par défaut, un dossier par nombre d'images (results/n3, results/n500)
+    p.add_argument("--out", default=None)
     a = p.parse_args()
 
-    sortie = Path(a.out)
-    sortie.mkdir(exist_ok=True)
+    sortie = Path(a.out) if a.out else Path("results") / f"n{a.n}"
+    sortie.mkdir(parents=True, exist_ok=True)  # MODIFIÉ : parents=True
     images = lister_images(a.images_dir, a.n)
     print(f"{len(images)} images, GPU : {torch.cuda.get_device_name(0)}")
 
     resume = []
     for cle in MODELES:
         for prec in PRECISIONS:
-            if (sortie / f"captions_{cle}_{prec}.csv").exists():
+            fichier = sortie / f"metrics_{cle}_{prec}.json"
+            # MODIFIÉ : une config est "déjà faite" si son JSON de mesures existe,
+            # et on le recharge pour que le tableau final soit toujours complet.
+            if fichier.exists():
                 print(f"[saut] {cle} {prec} déjà fait")
+                resume.append(json.loads(fichier.read_text(encoding="utf-8")))
                 continue
             print(f"[test] {cle} {prec}")
             try:
-                resume.append(tester(cle, prec, images, sortie))
-            # MODIFIÉ : on attrape RuntimeError (et pas seulement OOM), car les
-            # erreurs de bitsandbytes en sont. Un échec est noté, sans tout arrêter.
+                mesures = tester(cle, prec, images, sortie)
+                fichier.write_text(json.dumps(mesures), encoding="utf-8")
+                resume.append(mesures)
+            # on attrape RuntimeError (et pas seulement OOM), car les erreurs
+            # de bitsandbytes en sont. Un échec est noté, sans tout arrêter.
             except RuntimeError as e:
                 statut = "OOM" if isinstance(e, torch.cuda.OutOfMemoryError) else "erreur"
                 resume.append({"modele": cle, "precision": prec,
                                "statut": statut, "detail": str(e)[:80]})
-            vider_gpu()  # MODIFIÉ : après le except, une fois l'erreur oubliée
+            vider_gpu()
             print(resume[-1])
 
-    if resume:
-        champs = list(dict.fromkeys(k for r in resume for k in r))
-        with open(sortie / f"summary_n{len(images)}.csv", "w", newline="", encoding="utf-8") as f:
-            w = csv.DictWriter(f, fieldnames=champs)
-            w.writeheader()
-            w.writerows(resume)
+    champs = list(dict.fromkeys(k for r in resume for k in r))
+    with open(sortie / "summary.csv", "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=champs)
+        w.writeheader()
+        w.writerows(resume)
+    print(f"Tableau récapitulatif : {sortie / 'summary.csv'}")
