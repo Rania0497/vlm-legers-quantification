@@ -83,9 +83,13 @@ if __name__ == "__main__":
             print(f"[test] {cle} {prec}")
             try:
                 resume.append(tester(cle, prec, images, sortie))
-            except torch.cuda.OutOfMemoryError:
-                resume.append({"modele": cle, "precision": prec, "statut": "OOM"})
-                vider_gpu()
+            # MODIFIÉ : on attrape RuntimeError (et pas seulement OOM), car les
+            # erreurs de bitsandbytes en sont. Un échec est noté, sans tout arrêter.
+            except RuntimeError as e:
+                statut = "OOM" if isinstance(e, torch.cuda.OutOfMemoryError) else "erreur"
+                resume.append({"modele": cle, "precision": prec,
+                               "statut": statut, "detail": str(e)[:80]})
+            vider_gpu()  # MODIFIÉ : après le except, une fois l'erreur oubliée
             print(resume[-1])
 
     if resume:

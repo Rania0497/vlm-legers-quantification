@@ -12,18 +12,29 @@ MODELES = {
 }
 PROMPT = "Describe this image in one short sentence."
 
+# AJOUTÉ : modules à ne PAS quantifier (encodeur d'images + lm_head).
+# Le 8 bits de Qwen plantait dans l'encodeur visuel (erreur cublasLt).
+SAUTER = {
+    "smolvlm2": ["vision_model", "lm_head"],
+    "qwen25vl": ["visual", "lm_head"],
+}
+
 
 def charger(cle_modele, precision):
     """Charge un modèle et son processor. precision: fp16, 8bit ou 4bit."""
     repo = MODELES[cle_modele]
     args = {"device_map": "auto", "dtype": torch.float16}
     if precision == "8bit":
-        args["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
+        args["quantization_config"] = BitsAndBytesConfig(
+            load_in_8bit=True,
+            llm_int8_skip_modules=SAUTER[cle_modele],  # AJOUTÉ
+        )
     elif precision == "4bit":
         args["quantization_config"] = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.float16,
+            llm_int8_skip_modules=SAUTER[cle_modele],  # AJOUTÉ (marche aussi en 4 bits)
         )
     elif precision != "fp16":
         raise ValueError(f"précision inconnue : {precision}")
@@ -46,12 +57,11 @@ def legender(model, processor, image, prompt=PROMPT, max_new_tokens=60):
     return processor.batch_decode(nouveaux, skip_special_tokens=True)[0].strip()
 
 
-# MODIFIÉ : l'ancienne liberer(model) est supprimée. `del model` dans une
-# fonction n'efface que le nom local, donc la mémoire GPU n'était pas rendue.
-# REMPLACÉE par vider_gpu(), à appeler APRÈS un `del model, processor`
-# fait par l'appelant lui-même.
+# MODIFIÉ : remplace l'ancienne liberer(model), qui ne libérait rien
+# (`del model` dans une fonction n'efface que le nom local).
+# À appeler APRÈS un `del model, processor` fait par l'appelant.
 def vider_gpu():
-    """Rend la VRAM. À appeler après `del model, processor`."""
+    """Rend la VRAM."""
     gc.collect()
     torch.cuda.empty_cache()
 
