@@ -12,11 +12,13 @@ MODELES = {
 }
 PROMPT = "Describe this image in one short sentence."
 
-# AJOUTÉ : modules à ne PAS quantifier (encodeur d'images + lm_head).
-# Le 8 bits de Qwen plantait dans l'encodeur visuel (erreur cublasLt).
+# MODIFIÉ : on met les DEUX écritures de chaque nom (court et avec le préfixe
+# "model."), car "visual" seul ne correspondait pas au vrai chemin
+# "model.visual.blocks..." et l'encodeur d'images restait quantifié.
+# (Mesuré sur Colab : model.visual était en Linear8bitLt, lm_head en Linear.)
 SAUTER = {
-    "smolvlm2": ["vision_model", "lm_head"],
-    "qwen25vl": ["visual", "lm_head"],
+    "smolvlm2": ["vision_model", "model.vision_model", "lm_head"],
+    "qwen25vl": ["visual", "model.visual", "lm_head"],
 }
 
 
@@ -27,14 +29,14 @@ def charger(cle_modele, precision):
     if precision == "8bit":
         args["quantization_config"] = BitsAndBytesConfig(
             load_in_8bit=True,
-            llm_int8_skip_modules=SAUTER[cle_modele],  # AJOUTÉ
+            llm_int8_skip_modules=SAUTER[cle_modele],
         )
     elif precision == "4bit":
         args["quantization_config"] = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.float16,
-            llm_int8_skip_modules=SAUTER[cle_modele],  # AJOUTÉ (marche aussi en 4 bits)
+            llm_int8_skip_modules=SAUTER[cle_modele],
         )
     elif precision != "fp16":
         raise ValueError(f"précision inconnue : {precision}")
@@ -57,11 +59,8 @@ def legender(model, processor, image, prompt=PROMPT, max_new_tokens=60):
     return processor.batch_decode(nouveaux, skip_special_tokens=True)[0].strip()
 
 
-# MODIFIÉ : remplace l'ancienne liberer(model), qui ne libérait rien
-# (`del model` dans une fonction n'efface que le nom local).
-# À appeler APRÈS un `del model, processor` fait par l'appelant.
 def vider_gpu():
-    """Rend la VRAM."""
+    """Rend la VRAM. À appeler APRÈS un `del model, processor` fait par l'appelant."""
     gc.collect()
     torch.cuda.empty_cache()
 
