@@ -1,4 +1,23 @@
-# vlm-legers-quantification
+# Architecture globale du projet
+vlm-legers-quantification/
+|-- README.md              présentation + comment relancer
+|-- .gitignore             liste de ce que Git ignore
+|-- requirements.txt       bibliothèques aux versions figées
+|-- LICENSE                licence du code
+|-- notebooks/             notebooks numérotés
+|     01_donnees.ipynb, 02_baseline.ipynb, 03_modele.ipynb,
+|     04_evaluation.ipynb, 05_lora.ipynb
+|-- src/                   code réutilisable (.py)
+|     captioning.py, quantization.py, metrics.py
+|-- configs/               paramètres des expériences (.yaml)
+|-- data/                  script de téléchargement + fiche des données,
+|                          jamais les images elles-mêmes
+|-- results/               tableaux, figures, exemples de légendes
+|-- demo/                  app.py (Gradio) + courte vidéo
+|-- report/                rapport final
+|-- docs/                  guide d'utilisation, licences, fiche du modèle, éthique
+|-- .venv/                  
+
 
 # ETAPE 1
 1. Sur github.com
@@ -59,7 +78,11 @@ Lancer et vérifier
     python -c "from pathlib import Path; print(len(list(Path('data/raw/flickr8k_subset/images').glob('*'))))"
     git status
 
-6. Enregistrer et envoyer cette etape a github
+6. La fiche des données
+La fiche des données est la carte d’identité de ton jeu d’images : d’où il vient, ce qu’il contient, ce qu’on a le droit d’en faire et ses limites. Le guide l’exige dans data/, et le prof peut te poser des questions dessus.
+    notepad data\README.md
+
+7. Enregistrer et envoyer cette etape a github
     git add README.md data/download_flickr8k.py data/flickr8k_subset_ids.csv
     git commit -m "Ajoute le script de telechargement Flickr8k et la liste des 500 images"
     git push
