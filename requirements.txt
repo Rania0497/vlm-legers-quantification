@@ -1,0 +1,7 @@
+torch
+transformers>=4.56
+accelerate
+bitsandbytes
+pillow
+huggingface_hub
+num2words
