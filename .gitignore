@@ -218,3 +218,19 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- Projet VLM : donnees et modeles lourds (ne jamais envoyer sur GitHub) ---
+/data/raw/
+/data/processed/
+/models/
+/checkpoints/
+/outputs/
+# Formats de modeles (ignores partout, ils pesent des centaines de Mo ou des Go)
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.bin
+*.gguf
+# Suivi d'experiences (si utilise plus tard)
+wandb/
