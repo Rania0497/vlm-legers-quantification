@@ -1,0 +1,8 @@
+modele,precision,n_images,clipscore_moyen,clipscore_median
+humain,ref1,500,0.8063,0.8037
+smolvlm2,fp16,500,0.8395,0.8401
+smolvlm2,8bit,500,0.8327,0.8346
+smolvlm2,4bit,500,0.8219,0.8255
+qwen25vl,fp16,500,0.8139,0.8163
+qwen25vl,8bit,500,0.8176,0.8204
+qwen25vl,4bit,500,0.8163,0.8187
