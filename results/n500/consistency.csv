@@ -1,0 +1,7 @@
+modele,precision,mots_moyens,identiques_fp16_pct,mots_communs_fp16
+smolvlm2,fp16,14.43,100.0,1.0
+smolvlm2,8bit,13.14,42.6,0.801
+smolvlm2,4bit,11.38,11.4,0.607
+qwen25vl,fp16,11.28,100.0,1.0
+qwen25vl,8bit,11.67,66.6,0.883
+qwen25vl,4bit,11.73,38.4,0.754
