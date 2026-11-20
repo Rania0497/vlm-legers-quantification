@@ -1,0 +1,1 @@
+{"modele": "smolvlm2", "precision": "4bit", "statut": "ok", "n_images": 500, "chargement_s": 39.8, "vram_poids_Go": 2.16, "vram_pic_Go": 2.62, "temps_moyen_s": 1.499, "temps_median_s": 1.456}

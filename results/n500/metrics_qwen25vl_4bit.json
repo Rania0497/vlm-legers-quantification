@@ -1,0 +1,1 @@
+{"modele": "qwen25vl", "precision": "4bit", "statut": "ok", "n_images": 500, "chargement_s": 28.9, "vram_poids_Go": 3.54, "vram_pic_Go": 3.64, "temps_moyen_s": 1.122, "temps_median_s": 1.086}

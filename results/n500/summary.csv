@@ -1,0 +1,7 @@
+modele,precision,statut,n_images,chargement_s,vram_poids_Go,vram_pic_Go,temps_moyen_s,temps_median_s
+smolvlm2,fp16,ok,500,40.2,4.49,4.96,1.422,1.374
+smolvlm2,8bit,ok,500,43.3,2.88,3.36,2.573,2.499
+smolvlm2,4bit,ok,500,39.8,2.16,2.62,1.499,1.456
+qwen25vl,fp16,ok,500,27.2,7.52,7.58,0.804,0.785
+qwen25vl,8bit,ok,500,34.3,4.75,4.82,2.937,2.811
+qwen25vl,4bit,ok,500,28.9,3.54,3.64,1.122,1.086
