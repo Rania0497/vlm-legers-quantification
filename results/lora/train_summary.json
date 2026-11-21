@@ -1,0 +1,21 @@
+{
+  "modele_base": "sd-legacy/stable-diffusion-v1-5",
+  "images_entrainement": 25,
+  "images_test": 5,
+  "rang_lora": 4,
+  "etapes": 250,
+  "epoques": 36,
+  "learning_rate": 0.0001,
+  "batch": 1,
+  "accumulation": 4,
+  "precision": "fp16",
+  "gradient_checkpointing": true,
+  "seed": 42,
+  "gpu": "Tesla T4",
+  "duree_entrainement_s": 450,
+  "duree_totale_s": 507,
+  "vram_max_nvidia_smi_mio": 4363,
+  "poids_lora_octets": 3226184,
+  "versions": "diffusers 0.42.1, peft 0.21.2, transformers 5.22.1, torch 2.14.1+cu130",
+  "notes": "torchao desinstalle (incompatible avec peft) et poids LoRA forces en float32 (sinon erreur de GradScaler en fp16). Poids non publies : licences des images et du modele de base a verifier."
+}
