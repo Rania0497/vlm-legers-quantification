@@ -235,3 +235,6 @@ __marimo__/
 # Suivi d'experiences (si utilise plus tard)
 wandb/
 /results/examples/*.png
+
+/training/train_text_to_image_lora.py
+/lora_out/
