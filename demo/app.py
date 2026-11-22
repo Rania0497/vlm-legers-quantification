@@ -25,6 +25,7 @@ def _charger_si_besoin(cle, precision):
 
 
 def decrire(image, cle, precision):
+    """Inchangée : renvoie (légende, mesures)."""
     if image is None:
         return "Charge d'abord une image.", ""
     if not torch.cuda.is_available():
@@ -46,18 +47,34 @@ def decrire(image, cle, precision):
 
 
 def construire():
-    return gr.Interface(
-        fn=decrire,
-        inputs=[
-            gr.Image(type="pil", label="Image"),
-            gr.Dropdown(list(MODELES), value="qwen25vl", label="Modèle"),
-            gr.Dropdown(["fp16", "8bit", "4bit"], value="4bit", label="Précision"),
-        ],
-        outputs=[gr.Textbox(label="Légende"), gr.Textbox(label="Mesures")],
-        title="Légendes d'images avec de petits modèles vision-langage",
-        description=("Choisis un modèle et une précision. Le premier appel charge le modèle "
-                     "(plusieurs dizaines de secondes). Les images sont réduites à 512 px."),
-    )
+    # MODIFIÉ : gr.Blocks au lieu de gr.Interface, pour organiser la page soi-même
+    # MODIFIÉ : thème doux avec une couleur d'accent
+    with gr.Blocks(theme=gr.themes.Soft(primary_hue="emerald"),
+                   title="VLM légers") as demo:
+        # AJOUTÉ : titre et sous-titre
+        gr.Markdown("# Légendes d'images avec de petits modèles vision-langage\n"
+                    "Compare **SmolVLM2** et **Qwen2.5-VL** en **fp16, 8 bits ou 4 bits**. "
+                    "Le premier appel charge le modèle (plusieurs dizaines de secondes).")
+        # AJOUTÉ : deux colonnes, les réglages à gauche et le résultat à droite
+        with gr.Row():
+            with gr.Column(scale=1):
+                image = gr.Image(type="pil", label="Image", height=320)
+                # MODIFIÉ : Radio au lieu de Dropdown, tous les choix sont visibles
+                cle = gr.Radio(list(MODELES), value="qwen25vl", label="Modèle")
+                precision = gr.Radio(["fp16", "8bit", "4bit"], value="4bit",
+                                     label="Précision")
+                # AJOUTÉ : un vrai bouton à la place du Submit automatique
+                bouton = gr.Button("Décrire l'image", variant="primary")
+            with gr.Column(scale=1):
+                legende = gr.Textbox(label="Légende", lines=4)
+                mesures = gr.Textbox(label="Mesures (temps et VRAM)")
+                # AJOUTÉ : petit rappel pour le jury
+                gr.Markdown("**Rappel** : 4 bits = moins de mémoire, qualité à vérifier. "
+                            "Images réduites à 512 px.")
+        # AJOUTÉ : relie le bouton à la fonction decrire
+        bouton.click(decrire, inputs=[image, cle, precision],
+                     outputs=[legende, mesures])
+    return demo
 
 
 if __name__ == "__main__":
