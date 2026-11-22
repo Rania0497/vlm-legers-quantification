@@ -35,10 +35,9 @@ TITRE = """
 """
 
 AIDE = """
-**Comment lire le résultat**
 - **smolvlm2** : le plus petit modèle (2,2 milliards de paramètres). **qwen25vl** : un peu plus grand (environ 3,75 milliards).
 - **fp16** : le modèle complet, c'est la référence. **8bit** et **4bit** : le modèle compressé, il prend moins de mémoire.
-- Compare la **VRAM** (mémoire utilisée sur la carte graphique) et la **légende** : si la légende reste juste avec moins de VRAM, la compression a réussi.
+- Comparer la **VRAM** (mémoire utilisée sur la carte graphique) et la **légende** : si la légende reste juste avec moins de VRAM, la compression a réussi.
 """
 
 # Un seul modèle gardé en mémoire à la fois (limite de 12 Go de VRAM)
