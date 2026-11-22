@@ -1,4 +1,4 @@
-"""Démo Gradio : légender une image avec un petit VLM (fp16, 8 bits ou 4 bits)."""
+"""Démo Gradio EMSI : légender une image avec un petit VLM (fp16, 8 bits ou 4 bits)."""
 import argparse
 import time
 
@@ -8,6 +8,32 @@ import torch
 from src.captioning import MODELES, charger, legender, vider_gpu
 
 TAILLE_MAX = 512  # comme les images de l'évaluation (Flickr8k, environ 500 px)
+VERT = "#00843D"        # AJOUTÉ : vert principal (approximation du vert EMSI, à ajuster)
+VERT_FONCE = "#005C2B"  # AJOUTÉ : vert foncé pour le survol et les titres
+
+# AJOUTÉ : feuille de style CSS, insérée dans la page via gr.HTML
+STYLE = f"""
+<style>
+.gradio-container {{ max-width: 1100px !important; margin: auto; }}
+#bandeau {{ background: linear-gradient(90deg, {VERT_FONCE}, {VERT});
+           color: white; padding: 22px 28px; border-radius: 14px; margin-bottom: 8px; }}
+#bandeau h1 {{ color: white; margin: 0; font-size: 28px; }}
+#bandeau p {{ color: #E6F4EC; margin: 6px 0 0 0; font-size: 15px; }}
+#bouton button, button#bouton {{ background: {VERT} !important; color: white !important;
+           border: none !important; font-weight: 600; font-size: 16px; }}
+#bouton button:hover, button#bouton:hover {{ background: {VERT_FONCE} !important; }}
+.carte {{ border: 2px solid {VERT} !important; border-radius: 14px !important; padding: 12px; }}
+#pied {{ text-align: center; color: {VERT_FONCE}; font-size: 13px; margin-top: 10px; }}
+</style>
+"""
+
+# AJOUTÉ : bandeau vert en haut de la page
+BANDEAU = """
+<div id="bandeau">
+  <h1>EMSI | Légendes d'images avec de petits modèles vision-langage</h1>
+  <p>Projet 7 IA générative visuelle : SmolVLM2 et Qwen2.5-VL en fp16, 8 bits et 4 bits</p>
+</div>
+"""
 
 # Un seul modèle gardé en mémoire à la fois (limite de 12 Go de VRAM)
 _etat = {"cle": None, "modele": None, "processor": None}
@@ -47,31 +73,28 @@ def decrire(image, cle, precision):
 
 
 def construire():
-    # MODIFIÉ : gr.Blocks au lieu de gr.Interface, pour organiser la page soi-même
-    # MODIFIÉ : thème doux avec une couleur d'accent
-    with gr.Blocks(theme=gr.themes.Soft(primary_hue="emerald"),
-                   title="VLM légers") as demo:
-        # AJOUTÉ : titre et sous-titre
-        gr.Markdown("# Légendes d'images avec de petits modèles vision-langage\n"
-                    "Compare **SmolVLM2** et **Qwen2.5-VL** en **fp16, 8 bits ou 4 bits**. "
-                    "Le premier appel charge le modèle (plusieurs dizaines de secondes).")
-        # AJOUTÉ : deux colonnes, les réglages à gauche et le résultat à droite
+    # MODIFIÉ : gr.Blocks au lieu de gr.Interface ; le style passe par gr.HTML,
+    # ce qui évite les différences entre versions de Gradio (theme/css)
+    with gr.Blocks(title="EMSI - VLM légers") as demo:
+        gr.HTML(STYLE)    # AJOUTÉ : applique les couleurs vertes
+        gr.HTML(BANDEAU)  # AJOUTÉ : bandeau EMSI
         with gr.Row():
-            with gr.Column(scale=1):
+            with gr.Column(scale=1, elem_classes="carte"):  # AJOUTÉ : cadre vert
+                gr.Markdown("### 1. Choisis ton image et tes réglages")
                 image = gr.Image(type="pil", label="Image", height=320)
-                # MODIFIÉ : Radio au lieu de Dropdown, tous les choix sont visibles
                 cle = gr.Radio(list(MODELES), value="qwen25vl", label="Modèle")
                 precision = gr.Radio(["fp16", "8bit", "4bit"], value="4bit",
                                      label="Précision")
-                # AJOUTÉ : un vrai bouton à la place du Submit automatique
-                bouton = gr.Button("Décrire l'image", variant="primary")
-            with gr.Column(scale=1):
+                bouton = gr.Button("Décrire l'image", elem_id="bouton")  # AJOUTÉ : id pour le CSS
+            with gr.Column(scale=1, elem_classes="carte"):  # AJOUTÉ : cadre vert
+                gr.Markdown("### 2. Résultat")
                 legende = gr.Textbox(label="Légende", lines=4)
                 mesures = gr.Textbox(label="Mesures (temps et VRAM)")
-                # AJOUTÉ : petit rappel pour le jury
-                gr.Markdown("**Rappel** : 4 bits = moins de mémoire, qualité à vérifier. "
-                            "Images réduites à 512 px.")
-        # AJOUTÉ : relie le bouton à la fonction decrire
+                gr.Markdown("**À retenir** : 4 bits = moins de mémoire, qualité à vérifier. "
+                            "Le premier appel charge le modèle (plusieurs dizaines de secondes).")
+        # AJOUTÉ : pied de page
+        gr.HTML('<div id="pied">EMSI | Projet 7 | Images réduites à 512 px</div>')
+        # AJOUTÉ : le bouton lance decrire
         bouton.click(decrire, inputs=[image, cle, precision],
                      outputs=[legende, mesures])
     return demo
