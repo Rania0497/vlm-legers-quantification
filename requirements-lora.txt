@@ -1,0 +1,8 @@
+# Entraînement et génération avec la LoRA (en plus de requirements.txt). Mêmes versions que Colab.
+# IMPORTANT : torchao ne doit PAS être installé (incompatible avec cette version de peft).
+# Sur Colab, il faut donc faire : pip uninstall -y torchao
+diffusers==0.42.1
+peft==0.21.2
+ftfy==6.3.1
+tensorboard==2.21.0
+Jinja2==3.1.6

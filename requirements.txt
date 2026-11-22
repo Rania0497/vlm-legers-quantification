@@ -1,7 +1,12 @@
-torch
-transformers>=4.56
-accelerate
-bitsandbytes
-pillow
-huggingface_hub
-num2words
+# Modèles, légendage, démo : GPU NVIDIA requis (bitsandbytes).
+# Versions relevées sur Colab (T4) : Python 3.13.16, Linux, CUDA 13.0.
+# torch 2.14.1+cu130 est préinstallé sur Colab.
+transformers==5.22.1
+accelerate==1.15.0
+bitsandbytes==0.50.2
+pillow==11.3.0
+huggingface_hub==1.33.0
+numpy==2.4.6
+gradio==6.31.0
+datasets==4.8.5
+num2words==0.5.14
