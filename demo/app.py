@@ -1,6 +1,6 @@
 """Démo Gradio EMSI : légender une image avec un petit VLM (fp16, 8 bits ou 4 bits)."""
 import argparse
-import inspect  # AJOUTÉ : pour savoir où Gradio accepte css et theme
+import inspect 
 import time
 
 import gradio as gr
@@ -9,9 +9,8 @@ import torch
 from src.captioning import MODELES, charger, legender, vider_gpu
 
 TAILLE_MAX = 512  # comme les images de l'évaluation (Flickr8k, environ 500 px)
-VERT = "#2E7D32"  # MODIFIÉ : un seul vert, sobre, utilisé seulement pour le bouton et un trait
+VERT = "#2E7D32"  
 
-# MODIFIÉ : style simple. Fond blanc, texte noir, police Arial, peu de vert.
 CSS = f"""
 html, body {{ overflow: hidden !important; }}
 .gradio-container {{ max-width: 1100px !important; margin: auto; background: white !important;
@@ -24,11 +23,10 @@ html, body {{ overflow: hidden !important; }}
 footer {{ display: none !important; }}
 """
 
-# MODIFIÉ : thème neutre (Base) au lieu de Soft, police Arial, texte noir
-THEME = gr.themes.Base(primary_hue=gr.themes.colors.green, neutral_hue=gr.themes.colors.gray,
-                       font=["Arial", "Helvetica", "sans-serif"])
 
-# MODIFIÉ : titre simple, sans dégradé
+THEME = gr.themes.Base(primary_hue=gr.themes.colors.green, neutral_hue=gr.themes.colors.gray)
+
+
 BANDEAU = """
 <div id="titre">
   <h1>EMSI - Légendes d'images avec de petits modèles vision-langage</h1>
@@ -82,26 +80,23 @@ def decrire(image, cle, precision):
 
 
 def construire():
-    # MODIFIÉ : gr.Blocks au lieu de gr.Interface ; le style passe par gr.HTML,
-    # ce qui évite les différences entre versions de Gradio (theme/css)
     with gr.Blocks(title="EMSI - VLM légers", **_options_style(gr.Blocks)) as demo:
-        gr.HTML(BANDEAU)  # AJOUTÉ : bandeau EMSI
+        gr.HTML(BANDEAU) 
         with gr.Row():
-            with gr.Column(scale=1):  # MODIFIÉ : plus de cadre vert
-                gr.Markdown("**1. Image et réglages**")  # MODIFIÉ : titre plus court
-                image = gr.Image(type="pil", label="Image", height=250)  # MODIFIÉ : plus petite, pas de défilement
-                with gr.Row():  # AJOUTÉ : modèle et précision côte à côte (gain de hauteur)
+            with gr.Column(scale=1): 
+                gr.Markdown("**1. Image et réglages**")  
+                image = gr.Image(type="pil", label="Image", height=250)  
+                with gr.Row():  
                     cle = gr.Radio(list(MODELES), value="qwen25vl", label="Modèle")
                     precision = gr.Radio(["fp16", "8bit", "4bit"], value="4bit",
                                          label="Précision")
-                bouton = gr.Button("Décrire l'image", elem_id="bouton")  # AJOUTÉ : id pour le CSS
-            with gr.Column(scale=1):  # MODIFIÉ : plus de cadre vert
-                gr.Markdown("**2. Résultat**")  # MODIFIÉ : titre plus court
+                bouton = gr.Button("Décrire l'image", elem_id="bouton")  
+            with gr.Column(scale=1): 
+                gr.Markdown("**2. Résultat**")  
                 legende = gr.Textbox(label="Légende", lines=5)
                 mesures = gr.Textbox(label="Mesures (temps et VRAM)")
                 gr.Markdown("4 bits = moins de mémoire, qualité à vérifier. "
                             "Premier appel lent (chargement du modèle).")
-        # AJOUTÉ : le bouton lance decrire
         bouton.click(decrire, inputs=[image, cle, precision],
                      outputs=[legende, mesures])
     return demo
@@ -113,4 +108,4 @@ if __name__ == "__main__":
                    help="lien public temporaire (utile sur Colab)")
     a = p.parse_args()
     demo = construire()
-    demo.launch(share=a.share, **_options_style(demo.launch))  # MODIFIÉ : css/theme pour Gradio 6
+    demo.launch(share=a.share, **_options_style(demo.launch))  
