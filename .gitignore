@@ -238,3 +238,6 @@ wandb/
 
 /training/train_text_to_image_lora.py
 /lora_out/
+
+/Etapes.md
+/Rapport*.docx
