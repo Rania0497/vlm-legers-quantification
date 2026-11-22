@@ -1,6 +1,6 @@
 """Démo Gradio EMSI : légender une image avec un petit VLM (fp16, 8 bits ou 4 bits)."""
 import argparse
-import inspect 
+import inspect
 import time
 
 import gradio as gr
@@ -9,7 +9,7 @@ import torch
 from src.captioning import MODELES, charger, legender, vider_gpu
 
 TAILLE_MAX = 512  # comme les images de l'évaluation (Flickr8k, environ 500 px)
-VERT = "#2E7D32"  
+VERT = "#2E7D32"
 
 CSS = f"""
 html, body {{ overflow: hidden !important; }}
@@ -20,30 +20,35 @@ html, body {{ overflow: hidden !important; }}
 #titre p {{ color: #333 !important; font-size: 14px; margin: 2px 0 0 0; }}
 #titre {{ border-bottom: 3px solid {VERT}; padding-bottom: 6px; }}
 #bouton {{ background: {VERT} !important; color: white !important; border: none !important; }}
+#aide {{ font-size: 13px; color: #222 !important; }}
 footer {{ display: none !important; }}
 """
 
-
+# Pas de font=[...] ici : Gradio 6 plante avec des polices en texte. Arial vient du CSS.
 THEME = gr.themes.Base(primary_hue=gr.themes.colors.green, neutral_hue=gr.themes.colors.gray)
 
-
-BANDEAU = """
+TITRE = """
 <div id="titre">
   <h1>EMSI - Légendes d'images avec de petits modèles vision-langage</h1>
   <p>Projet 7 : SmolVLM2 et Qwen2.5-VL en fp16, 8 bits et 4 bits</p>
 </div>
 """
 
-
-def _options_style(fonction):
-    """AJOUTÉ : donne css et theme là où la version de Gradio les accepte.
-    Gradio 4 et 5 : dans gr.Blocks(...). Gradio 6 : dans launch(...)."""
-    params = inspect.signature(fonction).parameters
-    return {k: v for k, v in {"css": CSS, "theme": THEME}.items() if k in params}
-
+AIDE = """
+**Comment lire le résultat**
+- **smolvlm2** : le plus petit modèle (2,2 milliards de paramètres). **qwen25vl** : un peu plus grand (environ 3,75 milliards).
+- **fp16** : le modèle complet, c'est la référence. **8bit** et **4bit** : le modèle compressé, il prend moins de mémoire.
+- Compare la **VRAM** (mémoire utilisée sur la carte graphique) et la **légende** : si la légende reste juste avec moins de VRAM, la compression a réussi.
+"""
 
 # Un seul modèle gardé en mémoire à la fois (limite de 12 Go de VRAM)
 _etat = {"cle": None, "modele": None, "processor": None}
+
+
+def _options_style(fonction):
+    """Donne css et theme là où la version de Gradio les accepte (Blocks ou launch)."""
+    params = inspect.signature(fonction).parameters
+    return {k: v for k, v in {"css": CSS, "theme": THEME}.items() if k in params}
 
 
 def _charger_si_besoin(cle, precision):
@@ -58,7 +63,7 @@ def _charger_si_besoin(cle, precision):
 
 
 def decrire(image, cle, precision):
-    """Inchangée : renvoie (légende, mesures)."""
+    """Renvoie (légende, mesures)."""
     if image is None:
         return "Charge d'abord une image.", ""
     if not torch.cuda.is_available():
@@ -81,22 +86,19 @@ def decrire(image, cle, precision):
 
 def construire():
     with gr.Blocks(title="EMSI - VLM légers", **_options_style(gr.Blocks)) as demo:
-        gr.HTML(BANDEAU) 
+        gr.HTML(TITRE)
         with gr.Row():
-            with gr.Column(scale=1): 
-                gr.Markdown("**1. Image et réglages**")  
-                image = gr.Image(type="pil", label="Image", height=250)  
-                with gr.Row():  
-                    cle = gr.Radio(list(MODELES), value="qwen25vl", label="Modèle")
-                    precision = gr.Radio(["fp16", "8bit", "4bit"], value="4bit",
-                                         label="Précision")
-                bouton = gr.Button("Décrire l'image", elem_id="bouton")  
-            with gr.Column(scale=1): 
-                gr.Markdown("**2. Résultat**")  
-                legende = gr.Textbox(label="Légende", lines=5)
+            with gr.Column(scale=1):
+                image = gr.Image(type="pil", label="Image", height=250)
+                with gr.Row():
+                    cle = gr.Dropdown(list(MODELES), value="qwen25vl", label="Modèle")
+                    precision = gr.Dropdown(["fp16", "8bit", "4bit"], value="4bit",
+                                            label="Précision")
+                bouton = gr.Button("Décrire l'image", elem_id="bouton")
+            with gr.Column(scale=1):
+                legende = gr.Textbox(label="Légende", lines=4)
                 mesures = gr.Textbox(label="Mesures (temps et VRAM)")
-                gr.Markdown("4 bits = moins de mémoire, qualité à vérifier. "
-                            "Premier appel lent (chargement du modèle).")
+                gr.Markdown(AIDE, elem_id="aide")
         bouton.click(decrire, inputs=[image, cle, precision],
                      outputs=[legende, mesures])
     return demo
@@ -108,4 +110,4 @@ if __name__ == "__main__":
                    help="lien public temporaire (utile sur Colab)")
     a = p.parse_args()
     demo = construire()
-    demo.launch(share=a.share, **_options_style(demo.launch))  
+    demo.launch(share=a.share, **_options_style(demo.launch))
